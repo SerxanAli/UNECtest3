@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Smart Quiz Generator - PDF Test Yaradıcı</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f0f2f5 100%);
+            margin: 0;
+            padding: 16px;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px 20px 32px;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s;
+        }
+        /* Telefon üçün əlavə padding */
+        @media (max-width: 640px) {
+            body {
+                padding: 12px;
+            }
+            .container {
+                padding: 16px 16px 28px;
+                border-radius: 24px;
+            }
+        }
+        h1 {
+            color: #0f2b5e;
+            text-align: center;
+            margin-top: 0;
+            font-weight: 700;
+            font-size: 1.6rem;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.4rem;
+            }
+        }
+        .sub {
+            text-align: center;
+            color: #4b5563;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        .upload-section {
+            border: 3px dashed #3b82f6;
+            padding: 28px 16px;
+            text-align: center;
+            border-radius: 28px;
+            background: #f8fafc;
+            margin-bottom: 28px;
+            cursor: pointer;
+            transition: 0.25s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .upload-section:hover {
+            background: #eef2ff;
+            border-color: #2563eb;
+            transform: scale(0.99);
+        }
+        .file-input {
+            display: none;
+        }
+        .btn-primary {
+            background: linear-gradient(95deg, #2563eb, #1d4ed8);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+            transition: 0.2s;
+        }
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+        .status {
+            margin-top: 16px;
+            font-weight: 500;
+            background: #f1f5f9;
+            padding: 8px 16px;
+            border-radius: 40px;
+            display: inline-block;
+            font-size: 0.8rem;
+            max-width: 100%;
+            word-break: break-word;
+        }
+        /* ========= RESPONSİV KONTROL PANEL ========= */
+        .control-panel {
+            background: #f8fafc;
+            border-radius: 24px;
+            padding: 16px 18px;
+            margin-bottom: 28px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+        /* Telefon üçün dikey düzülüş */
+        @media (max-width: 640px) {
+            .control-panel {                
+                flex-direction: column;
+                align-items: stretch;
+                gap: 14px;
+                padding: 16px;
+            }
+        }
+        .mode-selector {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: white;
+            padding: 6px 16px;
+            border-radius: 60px;
+            border: 1px solid #cbd5e1;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        @media (max-width: 480px) {
+            .mode-selector {
+                justify-content: space-between;
+                width: 100%;
+                padding: 8px 12px;
+            }
+        }
+        .mode-selector label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 8px 14px;
+            border-radius: 40px;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 480px) {
+            .mode-selector label {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+                flex: 1;                
+                justify-content: center;
+            }
+        }
+        .mode-selector input {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            accent-color: #2563eb;
+        }
+        .mode-selector label:has(input:checked) {
+            background: #eef2ff;
+            color: #1e40af;
+        }
+        /* Buton qrupu mobil üçün */
+        .panel-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 480px) {
+            .panel-buttons {
+                width: 100%;
+                flex-direction: column;
+            }
+            .panel-buttons button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        .btn-secondary {
+            background: #475569;
+            box-shadow: none;
+        }
+        .btn-secondary:active {
+            background: #334155;
+        }
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e7ff;
+            padding-bottom: 10px;
+        }
+        .stats {
+            font-size: 0.8rem;
+            background: #eef2ff;
+            padding: 5px 12px;
+            border-radius: 32px;
+            font-weight: 500;
+        }
+        .question-block {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 18px;
+            margin-bottom: 24px;
+            border-radius: 24px;
+            box-shadow: 0 6px 12px -8px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+        @media (max-width: 480px) {
+            .question-block {
+                padding: 14px;
+                margin-bottom: 20px;
+            }
+        }
+        .question-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 18px;
+            color: #0c4a6e;
+            background: #f1f5f9;
+            padding: 12px 16px;
+            border-radius: 20px;
+            border-left: 6px solid #3b82f6;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+        @media (max-width: 480px) {
+            .question-title {
+                font-size: 0.95rem;
+                padding: 10px 14px;
+            }
+        }
+        .options-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 12px 16px;
+            border: 1.5px solid #d4d9e2;
+            border-radius: 60px;
+            background: #ffffff;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            color: #1e293b;
+            word-break: break-word;
+        }
+        @media (max-width: 480px) {
+            .option-btn {
+                padding: 10px 14px;                
+                font-size: 0.85rem;
+            }
+        }
+        .option-btn:hover:not(:disabled) {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+            transform: translateX(4px);
+        }
+        .option-btn:active {
+            transform: scale(0.98);
+        }
+        .correct {
+            background: #10b981 !important;
+            border-color: #059669 !important;
+            color: white !important;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+        .wrong {
+            background: #ef4444 !important;
+            border-color: #b91c1c !important;
+            color: white !important;
+        }
+        .feedback {
+            margin-top: 16px;
+            font-weight: 500;
+            display: none;
+            padding: 12px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            backdrop-filter: blur(4px);
+        }
+        .feedback.success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 6px solid #10b981;
+        }
+        .feedback.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 6px solid #ef4444;
+        }
+        .empty-message {
+            text-align: center;
+            background: #fee2e2;
+            padding: 28px 16px;
+            border-radius: 28px;
+            color: #b91c1c;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            margin-top: 28px;
+            color: #6c757d;
+            border-top: 1px solid #eef2ff;
+            padding-top: 18px;
+        }
+        .loading-placeholder {
+            text-align: center;
+            padding: 40px 20px;
+            color: #3b82f6;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📄 İnteraktiv PDF Quiz Yaradıcı</h1>
+    <div class="sub">⚡ Cavab variantları hər dəfə randomlaşır | Sıra ilə və ya təsadüfi</div>    
+    
+    <div class="upload-section" onclick="document.getElementById('pdfFile').click()">
+        <input type="file" id="pdfFile" class="file-input" accept=".pdf">
+        <button class="btn-primary" type="button">📁 PDF faylını seçin</button>
+        <div id="statusMessage" class="status">📌 Hələ fayl seçilməyib</div>
+        <div style="font-size:12px; margin-top:12px; color:#5b6e8c;">
+            Açılış Formati: 1. Sual mətni <br> • Variant A <br> √ Düzgün variant
+        </div>
+    </div>
+
+    <div id="controlPanel" style="display: none;">
+        <div class="control-panel">
+            <div class="mode-selector">
+                <label>
+                    <input type="radio" name="quizMode" value="sequential" checked> 📚 Sıra ilə
+                </label>
+                <label>
+                    <input type="radio" name="quizMode" value="random"> 🎲 Təsadüfi
+                </label>
+                <label style="border-left: 1px solid #cbd5e1; padding-left: 12px; margin-left: 4px; color: #b91c1c;">
+                    <input type="checkbox" id="filterLongestCorrect"> ✂️ Qısalar (Uzun cavabı gizlə)
+                </label>
+            </div>
+            <div class="panel-buttons">
+                <button id="reorderQuestionsBtn" class="btn-primary" style="background:#475569; box-shadow:none;">🔄 Tətbiq et</button>
+                <button id="restartQuizBtn" class="btn-primary" style="background:#0f3b5c;">🔄 Quiz-i sıfırla</button>
+                <button id="showAllAnswersBtn" class="btn-primary" style="background:#10b981; box-shadow:none;">👁️ Cavabları Göstər</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="quizDisplay"></div>
+    <footer>📱 Mobil dostu interfeys | Cavab variantlarının sırası hər dəfə dəyişir</footer>
+</div>
+
+<script>
+// PDF.js işçi konfiqurasiyası
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+// Qlobal dəyişənlər
+let rawQuestions = [];       
+let currentQuestions = [];   
+let currentOrder = "sequential";  
+let isPdfLoaded = false;
+
+// DOM elementləri
+const pdfInput = document.getElementById('pdfFile');
+const statusDiv = document.getElementById('statusMessage');
+const quizContainer = document.getElementById('quizDisplay');
+const controlPanelDiv = document.getElementById('controlPanel');
+const reorderBtn = document.getElementById('reorderQuestionsBtn');
+const restartBtn = document.getElementById('restartQuizBtn');
+const showAnswersBtn = document.getElementById('showAllAnswersBtn'); // Yeni element müraciəti
+const filterCheckbox = document.getElementById('filterLongestCorrect'); 
+
+// === KÖMƏKÇİ FUNKSİYALAR ===
+
+// Variantları randomlaşdırmaq (correct dəyərini saxlayır)
+function shuffleOptions(questionObj) {
+    if (!questionObj.options || questionObj.options.length === 0) return {...questionObj};
+    
+    const optionsWithFlag = questionObj.options.map(opt => ({
+        text: opt,
+        isCorrect: (opt === questionObj.correct)
+    }));
+    
+    for (let i = optionsWithFlag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [optionsWithFlag[i], optionsWithFlag[j]] = [optionsWithFlag[j], optionsWithFlag[i]];
+    }
+    
+    const shuffledOptions = optionsWithFlag.map(item => item.text);
+    const newCorrect = optionsWithFlag.find(item => item.isCorrect)?.text || null;
+    
+    return {
+        question: questionObj.question,
+        options: shuffledOptions,
+        correct: newCorrect,
+        originalCorrect: questionObj.originalCorrect, 
+        isLongestCorrect: questionObj.isLongestCorrect 
+    };
+}
+
+// Bütün sualların variantlarını randomlaşdırır
+function randomizeAllOptions(questionsArray) {
+    return questionsArray.map(q => shuffleOptions(q));
+}
+
+// Sualların sırasını rejimə görə düzür
+function reorderQuestionsByMode(questionsArray, mode) {
+    if (mode === "sequential") {
+        return [...questionsArray];
+    } else {
+        const shuffled = [...questionsArray];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    }
+}
+
+// Tam quiz qurulması (variant random + sıralama + uzun cavab filtri)
+function buildAndRenderQuiz() {
+    if (!rawQuestions.length) {
+        quizContainer.innerHTML = '<div class="empty-message">⚠️ Heç bir sual tapılmadı. PDF formatını yoxlayın (1., • , √).</div>';
+        controlPanelDiv.style.display = 'none';
+        return;
+    }
+    
+    controlPanelDiv.style.display = 'block';
+    
+    let processedQuestions = [...rawQuestions];
+    
+    if (filterCheckbox && filterCheckbox.checked) {
+        processedQuestions = processedQuestions.filter(q => !q.isLongestCorrect);
+    }
+    
+    if (processedQuestions.length === 0) {
+        quizContainer.innerHTML = '<div class="empty-message">✂️ Seçilmiş filtrə əsasən bütün suallar pas keçildi (Hamısının düzgün cavabı ən uzundur).</div>';
+        return;
+    }
+    
+    const questionsWithShuffledOptions = randomizeAllOptions(processedQuestions);
+    const finalOrderedQuestions = reorderQuestionsByMode(questionsWithShuffledOptions, currentOrder);
+    currentQuestions = finalOrderedQuestions;
+    
+    renderQuizToDOM(currentQuestions);
+}
+
+// Seçilmiş rejimi və filtri tətbiq etmək
+function applyModeAndRefresh() {
+    if (!rawQuestions.length) {
+        alert("Zəhmət olmasa əvvəlcə PDF faylı yükləyin.");
+        return;
+    }
+    const selectedMode = document.querySelector('input[name="quizMode"]:checked').value;
+    currentOrder = selectedMode;
+    buildAndRenderQuiz();
+}
+
+function resetQuiz() {
+    if (!rawQuestions.length) {
+        alert("Heç bir sual yoxdur, zəhmət olmasa PDF seçin.");
+        return;
+    }
+    buildAndRenderQuiz();
+}
+
+// BÜTÜN DÜZGÜN CAVABLARI GÖSTƏRƏN YENİ FUNKSİYA
+function showAllAnswers() {
+    if (!rawQuestions.length || !currentQuestions.length) {
+        alert("Göstəriləcək heç bir test tapılmadı.");
+        return;
+    }
+
+    // DOM-dakı bütün sual bloklarını tapırıq
+    const questionBlocks = quizContainer.querySelectorAll('.question-block');
+    
+    questionBlocks.forEach((block, index) => {
+        const questionData = currentQuestions[index];
+        if (!questionData) return;
+
+        const optionButtons = block.querySelectorAll('.option-btn');
+        const feedbackDiv = block.querySelector('.feedback');
+
+        // Variant butonlarını dondururuq
+        optionButtons.forEach(btn => {
+            btn.disabled = true;
+            // Əgər butonun mətni düzgün cavabla eynidirsə, yaşıl rəng edin
+            if (btn.innerText === questionData.correct) {
+                btn.classList.add('correct');
+            }
+        });
+
+        // Feedback panelini aktivləşdirib məlumatı yazırıq
+        if (feedbackDiv) {
+            feedbackDiv.className = 'feedback success';
+            feedbackDiv.innerHTML = `💡 Sistem tərəfindən göstərildi: Doğru cavab: <strong>${questionData.correct || 'Məlum deyil'}</strong>`;
+            feedbackDiv.style.display = 'block';
+        }
+    });
+}
+
+// Cavab seçimləri üçün hadisələr
+function attachAnswerEvents(questionBlock, questionData, feedbackDiv, optionButtons) {
+    optionButtons.forEach(btn => {
+        if (btn._listener) btn.removeEventListener('click', btn._listener);
+        const handler = () => {
+            optionButtons.forEach(b => b.disabled = true);
+            const selectedText = btn.innerText;
+            
+            if (selectedText === questionData.correct) {
+                btn.classList.add('correct');
+                feedbackDiv.className = 'feedback success';
+                feedbackDiv.innerHTML = "🎉 Doğru cavab! Təbriklər! 🎉";
+            } else {
+                btn.classList.add('wrong');
+                feedbackDiv.className = 'feedback error';
+                const correctAnswerText = questionData.correct || 'Məlum deyil';
+                feedbackDiv.innerHTML = `❌ Səhv! Doğru cavab: <strong>${correctAnswerText}</strong>`;
+                optionButtons.forEach(b => {
+                    if (b.innerText === questionData.correct) {
+                        b.classList.add('correct');
+                    }
+                });
+            }
+            feedbackDiv.style.display = 'block';
+        };
+        btn.addEventListener('click', handler);
+        btn._listener = handler;
+    });
+}
+
+// DOM-a sualları çəkir
+function renderQuizToDOM(questionsArray) {
+    quizContainer.innerHTML = '';
+    if (!questionsArray.length) {
+        quizContainer.innerHTML = '<div class="empty-message">❌ Sual tapılmadı. PDF strukturuna uyğun olmalıdır.</div>';
+        return;
+    }
+    
+    questionsArray.forEach((q, idx) => {
+        const qBlock = document.createElement('div');
+        qBlock.className = 'question-block';
+        
+        const title = document.createElement('div');
+        title.className = 'question-title';
+        title.innerText = `${idx+1}. ${q.question}`;
+        qBlock.appendChild(title);
+        
+        const optionsContainer = document.createElement('div');
+        optionsContainer.className = 'options-area';
+        
+        const feedback = document.createElement('div');
+        feedback.className = 'feedback';
+        
+        const btns = [];
+        q.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            optionsContainer.appendChild(btn);
+            btns.push(btn);
+        });
+        
+        qBlock.appendChild(optionsContainer);
+        qBlock.appendChild(feedback);
+        quizContainer.appendChild(qBlock);
+        
+        attachAnswerEvents(qBlock, q, feedback, btns);
+    });
+}
+
+// === PDF PARSER MƏNTİQİ ===
+function parseQuizText(rawText) {
+    let processed = rawText.replace(/(\d+\.)/g, '\n$1');
+    processed = processed.replace(/([•√])/g, '\n$1');
+    const lines = processed.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    
+    const questions = [];
+    let currentQuestion = null;
+    
+    for (let line of lines) {
+        if (/^\d+\./.test(line)) {
+            if (currentQuestion && currentQuestion.options.length > 0) {
+                questions.push(currentQuestion);
+            }
+            currentQuestion = {
+                question: line.replace(/^\d+\.\s*/, ''),
+                options: [],
+                correct: null
+            };
+        }
+        else if (currentQuestion && (line.startsWith('•') || line.startsWith('√'))) {
+            const isCorrect = line.startsWith('√');
+            let optionText = line.substring(1).trim();
+            if (optionText === "") optionText = "[Boş variant]";
+            currentQuestion.options.push(optionText);
+            if (isCorrect) {
+                currentQuestion.correct = optionText;
+            }
+        }
+    }
+    
+    if (currentQuestion && currentQuestion.options.length >= 2 && currentQuestion.correct) {
+        questions.push(currentQuestion);
+    }
+    
+    const validQuestions = questions.filter(q => q.options.length >= 2 && q.correct !== null);
+    
+    const analyzedQuestions = validQuestions.map(q => {
+        let longestLength = 0;
+        
+        q.options.forEach(opt => {
+            if (opt.length > longestLength) {
+                longestLength = opt.length;
+            }
+        });
+        
+        const correctLength = q.correct.length;
+        const longestOptionsCount = q.options.filter(opt => opt.length === longestLength).length;
+        const isLongest = (correctLength === longestLength && longestOptionsCount === 1);
+        
+        return {
+            ...q,
+            isLongestCorrect: isLongest 
+        };
+    });
+    
+    return analyzedQuestions;
+}
+
+// PDF oxuma
+async function extractQuizFromPDF(file) {
+    const fileReader = new FileReader();
+    return new Promise((resolve, reject) => {
+        fileReader.onload = async function(evt) {
+            try {
+                const typedarray = new Uint8Array(evt.target.result);
+                const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                let fullText = "";
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(" ");
+                    fullText += pageText + "\n";
+                }
+                resolve(fullText);
+            } catch (err) {
+                reject(err);
+            }
+        };
+        fileReader.onerror = (err) => reject(err);
+        fileReader.readAsArrayBuffer(file);
+    });
+}
+
+// Fayl yüklənmə hadisəsi
+pdfInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    statusDiv.style.color = '#2563eb';
+    statusDiv.innerHTML = "⏳ PDF oxunur, analiz gedir...";
+    quizContainer.innerHTML = '<div class="loading-placeholder">⏳ Məlumat hazırlanır...</div>';
+    controlPanelDiv.style.display = 'none';
+    
+    try {
+        const extractedText = await extractQuizFromPDF(file);
+        const parsed = parseQuizText(extractedText);
+        
+        if (parsed.length === 0) {
+            statusDiv.style.color = '#dc2626';
+            statusDiv.innerHTML = "⚠️ Heç bir sual tapılmadı! Format: 1. Sual, • Variant, √ Düzgün";
+            quizContainer.innerHTML = '<div class="empty-message">❌ Sual strukturuna uyğun məlumat aşkarlanmadı.<br><br> <strong>Nümunə:</strong><br>1. Azərbaycanın paytaxtı?<br> • Bakı<br> √ Bakı</div>';
+            rawQuestions = [];
+            return;
+        }
+        
+        rawQuestions = parsed;
+        statusDiv.style.color = '#10b981';
+        statusDiv.innerHTML = `✅ Uğurlu! ${rawQuestions.length} sual tapıldı.`;
+        
+        const sequentialRadio = document.querySelector('input[value="sequential"]');
+        if (sequentialRadio) sequentialRadio.checked = true;
+        if (filterCheckbox) filterCheckbox.checked = false; 
+        currentOrder = "sequential";
+        
+        buildAndRenderQuiz();
+        
+    } catch (error) {
+        console.error(error);
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerHTML = "❌ Xəta: PDF oxumaq mümkün olmadı.";
+        quizContainer.innerHTML = '<div class="empty-message">Fayl oxuma xətası. PDF faylını yoxlayın.</div>';
+        rawQuestions = [];
+        controlPanelDiv.style.display = 'none';
+    }
+});
+
+// Düymələrə klik hadisələri
+if (reorderBtn) reorderBtn.addEventListener('click', applyModeAndRefresh);
+if (restartBtn) restartBtn.addEventListener('click', resetQuiz);
+if (showAnswersBtn) showAnswersBtn.addEventListener('click', showAllAnswers); // Yeni hadisə dinləyicisi
+
+// İlkin mesaj
+window.addEventListener('load', () => {
+    quizContainer.innerHTML = '<div style="text-align:center; color:#6c86a3; padding:40px 20px;">📘 PDF faylını yükləyin, avtomatik testə çevrilsin. "Qısalar" filtrini seçərək uzun cavablı sualları gizlədə bilərsiniz.</div>';
+});
+</script>
+</body>
+</html>
